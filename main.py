@@ -25,7 +25,7 @@ local_csv_url = 'user_data_local.csv'
 
 # Function to load CSV data from GitHub
 def load_original_data():
-    url = 'https://raw.githubusercontent.com/Meet2147/Parayan_Attendance/main/user_data.csv'
+    url = 'https://raw.githubusercontent.com/Meet2147/Parayan_Attendance/main/user_data.csv?token=GHSAT0AAAAAACUY3FJIQYWOZGFJ5ZVOF6X2ZWIMKIA'
     response = requests.get(url)
     if response.status_code == 200:
         return pd.read_csv(StringIO(response.text))
