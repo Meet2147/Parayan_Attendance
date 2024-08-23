@@ -54,14 +54,16 @@ if not df.empty:
     st.write(df)
 else:
     st.write("No data available.")
-
+          
+today_date = datetime.today().strftime('%d-%m-%Y')
+csv_filename = f'parayan_{today_date}.csv'
 # Option to download the data as a CSV file
 if not df.empty:
     csv = df.to_csv(index=False)
     st.download_button(
         label="Download data as CSV",
         data=csv,
-        file_name='user_data.csv',
+        file_name = csv_filename,
         mime='text/csv',
     )
 
