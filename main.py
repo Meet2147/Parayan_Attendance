@@ -20,13 +20,12 @@ c.execute('''
           ''')
 conn.commit()
 
-# Define the local CSV file path
-local_csv_url = 'user_data_local.csv'
+# Retrieve the CSV URL from environment variables
+csv_url = os.getenv('CSV_URL')
 
 # Function to load CSV data from GitHub
 def load_original_data():
-    url = 'https://raw.githubusercontent.com/Meet2147/Parayan_Attendance/main/user_data.csv'
-    response = requests.get(url)
+    response = requests.get(csv_url)
     if response.status_code == 200:
         return pd.read_csv(StringIO(response.text))
     else:
@@ -49,6 +48,7 @@ if st.button("Submit"):
         conn.commit()
 
         # Append data to the local CSV file
+        local_csv_url = csv_url
         file_exists = os.path.isfile(local_csv_url)
         with open(local_csv_url, mode='a', newline='') as file:
             writer = csv.writer(file)
