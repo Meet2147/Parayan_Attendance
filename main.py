@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import csv
+import requests
 
 # Initialize connection to SQLite database
 conn = sqlite3.connect('user_data.db')
@@ -32,8 +33,8 @@ if st.button("Submit"):
         c.execute('INSERT INTO users (name, number, locality) VALUES (?, ?, ?)', (name, number, locality))
         conn.commit()
 
-        # Append data to CSV file
-        with open('user_data.csv', mode='a', newline='') as file:
+        # Append data to a local CSV file (optional, if needed locally)
+        with open('user_data_local.csv', mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([name, number, locality])
 
@@ -42,10 +43,22 @@ if st.button("Submit"):
     else:
         st.error("Please fill in all fields.")
 
-# Optional: Display the data in the app
-if st.checkbox("Show data"):
-    df = pd.read_sql_query("SELECT * FROM users", conn)
-    st.write(df)
+# Reading the CSV file from GitHub
+csv_url = "https://raw.githubusercontent.com/Meet2147/Parayan_Attendance/main/user_data.csv?token=GHSAT0AAAAAACUY3FJJBZ7XRZLOJ5VSKL2MZWILHRQ"
+try:
+    df = pd.read_csv(csv_url)
+    if not df.empty:
+        st.write("Data from the GitHub CSV file:")
+        st.write(df)
+    else:
+        st.write("No data found in the GitHub CSV file.")
+except Exception as e:
+    st.error(f"Error reading CSV file: {e}")
+
+# Optional: Display the data stored in the SQLite database
+if st.checkbox("Show data stored locally"):
+    df_local = pd.read_sql_query("SELECT * FROM users", conn)
+    st.write(df_local)
 
 # Close the SQLite connection
 conn.close()
