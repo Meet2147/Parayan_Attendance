@@ -1,10 +1,6 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
-import csv
-import os
-import requests
-from io import StringIO
 
 # Initialize connection to SQLite database
 conn = sqlite3.connect('user_data.db')
@@ -20,17 +16,8 @@ c.execute('''
           ''')
 conn.commit()
 
-# Retrieve the CSV URL from environment variables
-csv_url = os.getenv('CSV_URL')
-
-# Function to load CSV data from GitHub
-def load_original_data():
-    response = requests.get(csv_url)
-    if response.status_code == 200:
-        return pd.read_csv(StringIO(response.text))
-    else:
-        st.error("Failed to load data from GitHub.")
-        return None
+# Load existing data from the SQLite database into a DataFrame
+df = pd.read_sql_query("SELECT name, number, locality FROM users", conn)
 
 # Streamlit UI
 st.title('User Information Form')
@@ -43,31 +30,40 @@ locality = st.selectbox("Select your Locality", ["Ghatkopar West", "Ghatkopar Ea
 # Button to submit the form
 if st.button("Submit"):
     if name and number and locality:
+        # Create a new DataFrame with the input data
+        new_data = pd.DataFrame({
+            'Name': [name],
+            'Number': [number],
+            'Locality': [locality]
+        })
+
+        # Append the new data to the existing DataFrame
+        df = pd.concat([df, new_data], ignore_index=True)
+
         # Insert data into the SQLite database
         c.execute('INSERT INTO users (name, number, locality) VALUES (?, ?, ?)', (name, number, locality))
         conn.commit()
-
-        # Append data to the local CSV file
-        # local_csv_url = csv_url
-        file_exists = os.path.isfile(csv_url)
-        with open(csv_url, mode='a', newline='') as file:
-            writer = csv.writer(file)
-            if not file_exists:
-                writer.writerow(["Name", "Number", "Locality"])  # Write headers if the file does not exist
-            writer.writerow([name, number, locality])
 
         st.success("Data saved successfully!")
     else:
         st.error("Please fill in all fields.")
 
-# Reading the CSV file from GitHub using the custom function
-df = load_original_data()
-if df is not None:
-    if not df.empty:
-        st.write("Data from the GitHub CSV file:")
-        st.write(df)
-    else:
-        st.write("No data found in the GitHub CSV file.")
+# Display the DataFrame
+if not df.empty:
+    st.write("Collected Data:")
+    st.write(df)
+else:
+    st.write("No data available.")
+
+# Option to download the data as a CSV file
+if not df.empty:
+    csv = df.to_csv(index=False)
+    st.download_button(
+        label="Download data as CSV",
+        data=csv,
+        file_name='user_data.csv',
+        mime='text/csv',
+    )
 
 # Optional: Display the data stored in the local SQLite database
 if st.checkbox("Show data stored locally"):
