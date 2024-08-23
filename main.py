@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import csv
-import requests
+import os
 
 # Initialize connection to SQLite database
 conn = sqlite3.connect('user_data.db')
@@ -18,9 +18,12 @@ c.execute('''
           ''')
 conn.commit()
 
+# Define the local CSV file URL
+csv_url = 'https://raw.githubusercontent.com/Meet2147/Parayan_Attendance/main/user_data.csv'
+
 # Streamlit UI
 st.title('User Information Form')
-csv_url = "https://raw.githubusercontent.com/Meet2147/Parayan_Attendance/main/user_data.csv?token=GHSAT0AAAAAACUY3FJJBZ7XRZLOJ5VSKL2MZWILHRQ"
+
 # Input fields
 name = st.text_input("Enter your Name")
 number = st.text_input("Enter your Phone Number")
@@ -33,25 +36,26 @@ if st.button("Submit"):
         c.execute('INSERT INTO users (name, number, locality) VALUES (?, ?, ?)', (name, number, locality))
         conn.commit()
 
-        # Append data to a local CSV file (optional, if needed locally)
+        # Append data to the local CSV file
+        file_exists = os.path.isfile(csv_url)
         with open(csv_url, mode='a', newline='') as file:
             writer = csv.writer(file)
+            if not file_exists:
+                writer.writerow(["Name", "Number", "Locality"])  # Writing headers if the file does not exist
             writer.writerow([name, number, locality])
 
         st.success("Data saved successfully!")
-
     else:
         st.error("Please fill in all fields.")
 
-# Reading the CSV file from GitHub
-csv_url = "https://raw.githubusercontent.com/Meet2147/Parayan_Attendance/main/user_data.csv?token=GHSAT0AAAAAACUY3FJJBZ7XRZLOJ5VSKL2MZWILHRQ"
+# Reading the local CSV file
 try:
     df = pd.read_csv(csv_url)
     if not df.empty:
-        st.write("Data from the GitHub CSV file:")
+        st.write("Data from the local CSV file:")
         st.write(df)
     else:
-        st.write("No data found in the GitHub CSV file.")
+        st.write("No data found in the local CSV file.")
 except Exception as e:
     st.error(f"Error reading CSV file: {e}")
 
