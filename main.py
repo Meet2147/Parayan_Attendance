@@ -3,6 +3,8 @@ import pandas as pd
 import sqlite3
 import csv
 import os
+import requests
+from io import StringIO
 
 # Initialize connection to SQLite database
 conn = sqlite3.connect('user_data.db')
@@ -18,8 +20,18 @@ c.execute('''
           ''')
 conn.commit()
 
-# Define the local CSV file URL
-csv_url = 'https://raw.githubusercontent.com/Meet2147/Parayan_Attendance/main/user_data.csv'
+# Define the local CSV file path
+local_csv_url = 'user_data_local.csv'
+
+# Function to load CSV data from GitHub
+def load_original_data():
+    url = 'https://raw.githubusercontent.com/Meet2147/Parayan_Attendance/main/user_data.csv'
+    response = requests.get(url)
+    if response.status_code == 200:
+        return pd.read_csv(StringIO(response.text))
+    else:
+        st.error("Failed to load data from GitHub.")
+        return None
 
 # Streamlit UI
 st.title('User Information Form')
@@ -37,29 +49,27 @@ if st.button("Submit"):
         conn.commit()
 
         # Append data to the local CSV file
-        file_exists = os.path.isfile(csv_url)
-        with open(csv_url, mode='a', newline='') as file:
+        file_exists = os.path.isfile(local_csv_url)
+        with open(local_csv_url, mode='a', newline='') as file:
             writer = csv.writer(file)
             if not file_exists:
-                writer.writerow(["Name", "Number", "Locality"])  # Writing headers if the file does not exist
+                writer.writerow(["Name", "Number", "Locality"])  # Write headers if the file does not exist
             writer.writerow([name, number, locality])
 
         st.success("Data saved successfully!")
     else:
         st.error("Please fill in all fields.")
 
-# Reading the local CSV file
-try:
-    df = pd.read_csv(csv_url)
+# Reading the CSV file from GitHub using the custom function
+df = load_original_data()
+if df is not None:
     if not df.empty:
-        st.write("Data from the local CSV file:")
+        st.write("Data from the GitHub CSV file:")
         st.write(df)
     else:
-        st.write("No data found in the local CSV file.")
-except Exception as e:
-    st.error(f"Error reading CSV file: {e}")
+        st.write("No data found in the GitHub CSV file.")
 
-# Optional: Display the data stored in the SQLite database
+# Optional: Display the data stored in the local SQLite database
 if st.checkbox("Show data stored locally"):
     df_local = pd.read_sql_query("SELECT * FROM users", conn)
     st.write(df_local)
