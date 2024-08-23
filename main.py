@@ -17,7 +17,7 @@ c.execute('''
 conn.commit()
 
 # Load existing data from the SQLite database into a DataFrame
-df = pd.read_sql_query("SELECT name, number, locality FROM users", conn)
+df = pd.read_sql_query("SELECT name AS Name, number AS Number, locality AS Locality FROM users", conn)
 
 # Streamlit UI
 st.title('User Information Form')
