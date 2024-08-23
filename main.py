@@ -20,7 +20,7 @@ conn.commit()
 
 # Streamlit UI
 st.title('User Information Form')
-
+csv_url = "https://raw.githubusercontent.com/Meet2147/Parayan_Attendance/main/user_data.csv?token=GHSAT0AAAAAACUY3FJJBZ7XRZLOJ5VSKL2MZWILHRQ"
 # Input fields
 name = st.text_input("Enter your Name")
 number = st.text_input("Enter your Phone Number")
@@ -34,7 +34,7 @@ if st.button("Submit"):
         conn.commit()
 
         # Append data to a local CSV file (optional, if needed locally)
-        with open('user_data_local.csv', mode='a', newline='') as file:
+        with open(csv_url, mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([name, number, locality])
 
