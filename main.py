@@ -48,9 +48,9 @@ if st.button("Submit"):
         conn.commit()
 
         # Append data to the local CSV file
-        local_csv_url = csv_url
-        file_exists = os.path.isfile(local_csv_url)
-        with open(local_csv_url, mode='a', newline='') as file:
+        # local_csv_url = csv_url
+        file_exists = os.path.isfile(csv_url)
+        with open(csv_url, mode='a', newline='') as file:
             writer = csv.writer(file)
             if not file_exists:
                 writer.writerow(["Name", "Number", "Locality"])  # Write headers if the file does not exist
